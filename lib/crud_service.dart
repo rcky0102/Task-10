@@ -28,4 +28,6 @@ class CrudService {
     //DELETE
     return items.doc(id).delete();
   }
+
+  void toggleFavorite(String id, bool isFavorite) {}
 }

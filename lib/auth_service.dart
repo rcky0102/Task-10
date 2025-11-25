@@ -1,33 +1,62 @@
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  final GoogleSignIn? _googleSignIn = kIsWeb ? null : GoogleSignIn();
+  final GoogleSignIn? _googleSignIn = kIsWeb ? null : GoogleSignIn.instance;
 
-  // GOOGLE SIGN-IN
   Future<User?> signInWithGoogle() async {
+    await _googleSignIn?.initialize(
+      clientId:
+          "726676382628-cqjt5slq0jhfs008dugsvhpuk9l6r2hv.apps.googleusercontent.com",
+    );
+
     if (kIsWeb) {
-      final GoogleAuthProvider googleProvider = GoogleAuthProvider();
+      GoogleAuthProvider googleProvider = GoogleAuthProvider();
+
       UserCredential userCredential = await _auth.signInWithPopup(
         googleProvider,
       );
       return userCredential.user;
     } else {
-      final googleUser = await _googleSignIn!.signIn();
-      if (googleUser == null) return null;
+      try {
+        final GoogleSignInAccount googleUser = await _googleSignIn!
+            .authenticate();
 
-      final googleAuth = await googleUser.authentication;
-      final credential = GoogleAuthProvider.credential(
-        accessToken: googleAuth.accessToken,
-        idToken: googleAuth.idToken,
-      );
-      return (await _auth.signInWithCredential(credential)).user;
+        final GoogleSignInAuthentication googleAuth = googleUser.authentication;
+        final GoogleSignInAuthorizationClient authorizationClient =
+            googleUser.authorizationClient;
+
+        GoogleSignInClientAuthorization? authorization =
+            await authorizationClient.authorizationForScopes([
+              'email',
+              'profile',
+            ]);
+
+        final accessToken = authorization?.accessToken;
+
+        final AuthCredential credential = GoogleAuthProvider.credential(
+          accessToken: accessToken,
+          idToken: googleAuth.idToken,
+        );
+
+        UserCredential userCredential = await _auth.signInWithCredential(
+          credential,
+        );
+        return userCredential.user;
+      } on FirebaseAuthException catch (e) {
+        debugPrint("Firebase Auth Error: ${e.message}");
+        return null;
+      } catch (e) {
+        debugPrint(
+          "Google Sign-In Error: Unable to complete sign-in. Please try again.",
+        );
+        return null;
+      }
     }
   }
 
-  // EMAIL/PASSWORD REGISTER
   Future<User?> registerWithEmail(String email, String password) async {
     try {
       final userCredential = await _auth.createUserWithEmailAndPassword(
@@ -36,12 +65,11 @@ class AuthService {
       );
       return userCredential.user;
     } catch (e) {
-      print("Registration error: $e");
+      debugPrint("Registration Error: $e");
       return null;
     }
   }
 
-  // EMAIL/PASSWORD LOGIN
   Future<User?> signInWithEmail(String email, String password) async {
     try {
       final userCredential = await _auth.signInWithEmailAndPassword(
@@ -50,12 +78,11 @@ class AuthService {
       );
       return userCredential.user;
     } catch (e) {
-      print("Login error: $e");
+      debugPrint("Sign-In Error: $e");
       return null;
     }
   }
 
-  // SIGN OUT
   Future<void> signOut() async {
     if (!kIsWeb) {
       await _googleSignIn?.signOut();
@@ -63,6 +90,14 @@ class AuthService {
     await _auth.signOut();
   }
 
-  // AUTH STATE STREAM
   Stream<User?> get userStream => _auth.authStateChanges();
+
+  Future<void> sendPasswordResetEmail(String email) async {
+    try {
+      await _auth.sendPasswordResetEmail(email: email);
+    } catch (e) {
+      debugPrint("Password Reset Error: $e");
+      rethrow;
+    }
+  }
 }
