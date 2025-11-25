@@ -11,14 +11,21 @@ class HomePage extends StatelessWidget {
 
   HomePage({super.key});
 
+  final Color darkGrey = const Color(0xFF2E2E2E);
+  final Color lightGrey = const Color(0xFFF2F2F2);
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey,
+      backgroundColor: lightGrey,
       appBar: AppBar(
-        title: const Text('Firebase Adaya'),
+        title: const Text(
+          'Firebase Adaya',
+          style: TextStyle(color: Colors.white),
+        ),
         centerTitle: true,
-        backgroundColor: Colors.teal,
+        backgroundColor: darkGrey,
+        foregroundColor: Colors.white,
         actions: [
           IconButton(
             icon: const Icon(Icons.logout, color: Colors.white),
@@ -33,7 +40,7 @@ class HomePage extends StatelessWidget {
         ],
       ),
       floatingActionButton: FloatingActionButton(
-        backgroundColor: Colors.teal,
+        backgroundColor: darkGrey,
         child: const Icon(Icons.add, color: Colors.white),
         onPressed: () => openAddDialog(context),
       ),
@@ -48,32 +55,33 @@ class HomePage extends StatelessWidget {
 
           if (docs.isEmpty) {
             return const Center(
-              child: Text("No items found", style: TextStyle(fontSize: 18)),
+              child: Text(
+                "No items found",
+                style: TextStyle(fontSize: 18, color: Colors.black87),
+              ),
             );
           }
 
           return ListView.builder(
-            padding: const EdgeInsets.all(8),
+            padding: const EdgeInsets.all(10),
             itemCount: docs.length,
             itemBuilder: (context, index) {
               var item = docs[index];
 
               return Card(
+                color: Colors.white,
                 elevation: 3,
                 margin: const EdgeInsets.symmetric(vertical: 6),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: ListTile(
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 8,
-                  ),
                   title: Text(
                     item['name'],
                     style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
+                      color: Colors.black87,
                     ),
                   ),
                   subtitle: Text(
@@ -84,7 +92,7 @@ class HomePage extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       IconButton(
-                        icon: const Icon(Icons.edit, color: Colors.orange),
+                        icon: Icon(Icons.edit, color: Colors.grey[700]),
                         onPressed: () => _openEditDialog(context, item),
                       ),
                       IconButton(
@@ -103,17 +111,21 @@ class HomePage extends StatelessWidget {
   }
 
   //======================================================
-  // DELETE ITEM POPUP
+  // DELETE POPUP
   //======================================================
   void _confirmDelete(BuildContext context, String id) {
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        title: const Text("Delete item"),
-        content: const Text("Are you sure you want to delete this item?"),
+        backgroundColor: Colors.white,
+        title: const Text("Delete item", style: TextStyle(color: Colors.black)),
+        content: const Text(
+          "Are you sure you want to delete this item?",
+          style: TextStyle(color: Colors.black87),
+        ),
         actions: [
           TextButton(
-            child: const Text("Cancel"),
+            child: const Text("Cancel", style: TextStyle(color: Colors.grey)),
             onPressed: () => Navigator.pop(context),
           ),
           TextButton(
@@ -138,7 +150,8 @@ class HomePage extends StatelessWidget {
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        title: const Text("Add Item"),
+        backgroundColor: Colors.white,
+        title: const Text("Add Item", style: TextStyle(color: Colors.black)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -146,6 +159,7 @@ class HomePage extends StatelessWidget {
               controller: nameCtrl,
               decoration: InputDecoration(
                 labelText: "Name",
+                labelStyle: const TextStyle(color: Colors.black87),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
@@ -157,6 +171,7 @@ class HomePage extends StatelessWidget {
               keyboardType: TextInputType.number,
               decoration: InputDecoration(
                 labelText: "Quantity",
+                labelStyle: const TextStyle(color: Colors.black87),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
@@ -166,17 +181,17 @@ class HomePage extends StatelessWidget {
         ),
         actions: [
           TextButton(
-            child: const Text('Cancel'),
+            child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
             onPressed: () => Navigator.pop(context),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.teal,
+              backgroundColor: const Color(0xFF2E2E2E),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(8),
               ),
             ),
-            child: const Text("Save"),
+            child: const Text("Save", style: TextStyle(color: Colors.white)),
             onPressed: () {
               if (nameCtrl.text.isNotEmpty && qtyCtrl.text.isNotEmpty) {
                 service.addItem(nameCtrl.text, int.parse(qtyCtrl.text));
@@ -199,7 +214,8 @@ class HomePage extends StatelessWidget {
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        title: const Text("Edit Item"),
+        backgroundColor: Colors.white,
+        title: const Text("Edit Item", style: TextStyle(color: Colors.black)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -207,6 +223,7 @@ class HomePage extends StatelessWidget {
               controller: nameCtrl,
               decoration: InputDecoration(
                 labelText: "Name",
+                labelStyle: const TextStyle(color: Colors.black87),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
@@ -218,6 +235,7 @@ class HomePage extends StatelessWidget {
               keyboardType: TextInputType.number,
               decoration: InputDecoration(
                 labelText: "Quantity",
+                labelStyle: const TextStyle(color: Colors.black87),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
@@ -227,17 +245,17 @@ class HomePage extends StatelessWidget {
         ),
         actions: [
           TextButton(
-            child: const Text("Cancel"),
+            child: const Text("Cancel", style: TextStyle(color: Colors.grey)),
             onPressed: () => Navigator.pop(context),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.orange,
+              backgroundColor: Colors.grey[700],
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(8),
               ),
             ),
-            child: const Text("Update"),
+            child: const Text("Update", style: TextStyle(color: Colors.white)),
             onPressed: () {
               if (nameCtrl.text.isNotEmpty && qtyCtrl.text.isNotEmpty) {
                 service.updateItem(

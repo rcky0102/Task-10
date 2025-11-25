@@ -11,93 +11,109 @@ class RegisterPage extends StatefulWidget {
 
 class _RegisterPageState extends State<RegisterPage> {
   final AuthService auth = AuthService();
-  final TextEditingController emailController = TextEditingController();
-  final TextEditingController passwordController = TextEditingController();
+  final emailCtrl = TextEditingController();
+  final passwordCtrl = TextEditingController();
   bool loading = false;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Adaya: Register')),
+      appBar: AppBar(title: const Text("Adaya: Register"), centerTitle: true),
       body: Center(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16.0),
+          padding: const EdgeInsets.all(20),
           child: Column(
             mainAxisSize: MainAxisSize.min,
-            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              TextField(
-                controller: emailController,
-                decoration: const InputDecoration(
-                  labelText: 'Email',
-                  border: OutlineInputBorder(),
-                ),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: passwordController,
-                decoration: const InputDecoration(
-                  labelText: 'Password',
-                  border: OutlineInputBorder(),
-                ),
-                obscureText: true,
-              ),
-              const SizedBox(height: 12),
-              ElevatedButton(
-                onPressed: () async {
-                  if (emailController.text.isEmpty ||
-                      passwordController.text.isEmpty) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Please fill all fields')),
-                    );
-                    return;
-                  }
-
-                  setState(() {
-                    loading = true;
-                  });
-
-                  final user = await auth.registerWithEmail(
-                    emailController.text,
-                    passwordController.text,
-                  );
-
-                  if (user != null) {
-                    if (!user.emailVerified) {
-                      await user.sendEmailVerification();
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text(
-                            'Verification email sent. Please check your inbox.',
-                          ),
-                        ),
-                      );
-                    }
-
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(builder: (_) => LoginPage()),
-                    );
-                  }
-                },
-                child: loading
-                    ? const CircularProgressIndicator()
-                    : const Text('Register'),
-              ),
-              const SizedBox(height: 12),
-              TextButton(
-                onPressed: () {
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(builder: (_) => LoginPage()),
-                  );
-                },
-                child: Text('Already have an account? Login'),
-              ),
+              _buildInputFields(),
+              const SizedBox(height: 20),
+              _buildRegisterButton(),
+              const SizedBox(height: 10),
+              _buildLoginRedirect(),
             ],
           ),
         ),
       ),
     );
+  }
+
+  Widget _buildInputFields() {
+    return Column(
+      children: [
+        TextField(
+          controller: emailCtrl,
+          decoration: const InputDecoration(
+            labelText: "Email",
+            border: OutlineInputBorder(),
+          ),
+        ),
+        const SizedBox(height: 12),
+        TextField(
+          controller: passwordCtrl,
+          obscureText: true,
+          decoration: const InputDecoration(
+            labelText: "Password",
+            border: OutlineInputBorder(),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildRegisterButton() {
+    return ElevatedButton(
+      onPressed: loading ? null : _handleRegister,
+      child: loading
+          ? const CircularProgressIndicator(color: Colors.white)
+          : const Text("Register"),
+    );
+  }
+
+  Widget _buildLoginRedirect() {
+    return TextButton(
+      onPressed: () {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const LoginPage()),
+        );
+      },
+      child: const Text("Already have an account? Login"),
+    );
+  }
+
+  Future<void> _handleRegister() async {
+    final email = emailCtrl.text.trim();
+    final password = passwordCtrl.text.trim();
+
+    if (email.isEmpty || password.isEmpty) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text("Please fill all fields.")));
+      return;
+    }
+
+    setState(() => loading = true);
+
+    final user = await auth.registerWithEmail(email, password);
+
+    if (user != null) {
+      if (!user.emailVerified) {
+        await user.sendEmailVerification();
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Verification email sent! Check your inbox."),
+          ),
+        );
+      }
+
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const LoginPage()),
+      );
+    }
+
+    if (mounted) {
+      setState(() => loading = false);
+    }
   }
 }
